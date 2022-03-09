@@ -27,7 +27,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             row: 1,
             col: 1,
         };
-        let _ = itp.compute(input.to_string(), position);
+        let _ = itp.compute(input, position);
+        // println!("{:?}", v);
+
         // if let Ok(_) = v {
         //     // println!("{:?}", s);
         // } else {

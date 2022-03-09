@@ -24,7 +24,7 @@ mod tests {
                 row: 1,
                 col: 1,
             };
-            let _ = itp.compute(input.to_string(), position);
+            let _ = itp.compute(input, position);
             i += 1;
         }
         println!("{:?}", now.elapsed());

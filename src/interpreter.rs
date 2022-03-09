@@ -1,11 +1,11 @@
 use crate::{lexer::Lexer, node::ASTNode, parser::Parser, token::Token};
-pub struct Interpreter {
-    lexer: Lexer,
+pub struct Interpreter<'a> {
+    lexer: Lexer<'a>,
     parser: Parser,
 }
 
-impl Interpreter {
-    pub fn new() -> Interpreter {
+impl<'a> Interpreter<'a> {
+    pub fn new() -> Interpreter<'a> {
         Interpreter {
             lexer: Lexer::new(),
             parser: Parser::new(),
@@ -59,10 +59,10 @@ impl ComputeResult {
     }
 }
 
-impl Interpreter {
+impl<'a> Interpreter<'a> {
     pub fn compute(
         &mut self,
-        input: String,
+        input: &'a str,
         position: CellPosition,
     ) -> Result<ComputeResult, String> {
         let tokens = self.lexer.make_tokens(input)?;
