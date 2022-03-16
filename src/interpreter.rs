@@ -1,11 +1,11 @@
 use crate::{lexer::Lexer, node::ASTNode, parser::Parser, token::Token};
-pub struct Interpreter {
-    pub lexer: Lexer,
+pub struct Interpreter<'a> {
+    pub lexer: Lexer<'a>,
     parser: Parser,
 }
 
-impl Interpreter {
-    pub fn new() -> Interpreter {
+impl<'a> Interpreter<'a> {
+    pub fn new() -> Interpreter<'a> {
         Interpreter {
             lexer: Lexer::new(),
             parser: Parser::new(),
@@ -13,56 +13,10 @@ impl Interpreter {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct CellPosition {
-    pub sheet: String,
-    pub row: usize,
-    pub col: usize,
-}
-
-#[derive(Debug)]
-pub enum ComputeResult {
-    Number(f32),
-    String(String),
-    Bool(bool),
-}
-
-fn bigger_string(left: &String, right: &String) -> bool {
-    let chs_r = right.chars().collect::<Vec<char>>();
-    let chs_l = left.chars().collect::<Vec<char>>();
-    let mut i = 0;
-    while i < chs_l.len() {
-        if let Some(ch) = chs_r.get(i) {
-            if (chs_l[i] as u8) < (*ch as u8) {
-                return true;
-            } else if (chs_l[i] as u8) > (*ch as u8) {
-                return false;
-            }
-        } else {
-            return false;
-        }
-        i += 1;
-    }
-    return false;
-}
-
-impl ComputeResult {
-    pub fn as_num(&self) -> Result<f32, String> {
-        match self {
-            Self::Number(n) => Ok(*n),
-            Self::String(s) => match s.parse::<f32>() {
-                Ok(v) => Ok(v),
-                Err(_) => Err(format!("Cannot convert {} to number", s)),
-            },
-            _ => Err("Expect a number or string".to_string()),
-        }
-    }
-}
-
-impl Interpreter {
+impl<'a> Interpreter<'a> {
     pub fn compute(
         &mut self,
-        input: String,
+        input: &'a str,
         position: CellPosition,
     ) -> Result<ComputeResult, String> {
         let tokens = self.lexer.make_tokens(input)?;
@@ -131,6 +85,53 @@ impl Interpreter {
                 }
             }
             _ => Err("Should not enter this arm".to_string()),
+        }
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct CellPosition {
+    pub sheet: String,
+    pub row: usize,
+    pub col: usize,
+}
+
+#[derive(Debug)]
+pub enum ComputeResult {
+    Number(f32),
+    String(String),
+    Bool(bool),
+}
+
+fn bigger_string(left: &String, right: &String) -> bool {
+    let chs_r = right.chars().collect::<Vec<char>>();
+    let chs_l = left.chars().collect::<Vec<char>>();
+    let mut i = 0;
+    while i < chs_l.len() {
+        if let Some(ch) = chs_r.get(i) {
+            if (chs_l[i] as u8) < (*ch as u8) {
+                return true;
+            } else if (chs_l[i] as u8) > (*ch as u8) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+        i += 1;
+    }
+    return false;
+}
+
+impl ComputeResult {
+    pub fn as_num(&self) -> Result<f32, String> {
+        match self {
+            Self::Number(n) => Ok(*n),
+            Self::String(s) => match s.parse::<f32>() {
+                Ok(v) => Ok(v),
+                Err(_) => Err(format!("Cannot convert {} to number", s)),
+            },
+            _ => Err("Expect a number or string".to_string()),
         }
     }
 }

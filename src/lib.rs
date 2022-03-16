@@ -18,7 +18,7 @@ mod tests {
         let mut itp = Interpreter::new();
         let mut i = 0;
         while i < 10 {
-            let input = "1+2+3+4+5+6+7+8+9+10".to_string();
+            let input = "1+2+3+4+5+6+7+8+9+10";
             let position = CellPosition {
                 sheet: "Sheet1".to_string(),
                 row: 1,

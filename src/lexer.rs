@@ -1,20 +1,21 @@
+use std::str::Chars;
+
 use crate::token::Token;
 use regex::Regex;
-
-pub struct Lexer {
-    pos: usize,
-    chars: Vec<char>,
+pub struct Lexer<'a> {
+    // pos: usize,
+    chars: Chars<'a>,
     cell_reg: Regex,
     // letters_map: String,
     // digits_reg: Regex,
     current: Option<char>,
 }
 
-impl Lexer {
-    pub fn new() -> Lexer {
+impl<'a> Lexer<'a> {
+    pub fn new() -> Lexer<'a> {
         Lexer {
-            pos: 0,
-            chars: vec![],
+            // pos: 0,
+            chars: "".chars(),
             cell_reg: Regex::new(r"^\$?[A-Za-z]+\$?\d+$").unwrap(),
             // letters_map: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$".to_string(),
             // digits_reg: Regex::new(r"[0-9]").unwrap(),
@@ -23,27 +24,21 @@ impl Lexer {
     }
 }
 
-impl Lexer {
-    fn reset(&mut self, input: String) {
-        self.chars = input.chars().collect();
-        self.pos = 0;
-        self.current = match self.chars.get(self.pos) {
-            Some(c) => Some(*c),
-            None => None,
-        }
+impl<'a> Lexer<'a> {
+    fn reset(&mut self, input: &'a str) {
+        self.chars = input.chars();
+        // self.pos = 0;
+        self.current = self.chars.nth(0)
     }
 
     fn advance(&mut self) {
-        self.pos += 1;
-        self.current = match self.chars.get(self.pos) {
-            Some(c) => Some(*c),
-            None => None,
-        }
+        // self.pos += 1;
+        self.current = self.chars.nth(0);
     }
 
-    pub fn make_tokens(&mut self, input: String) -> Result<Vec<Token>, String> {
+    pub fn make_tokens(&mut self, input: &'a str) -> Result<Vec<Token>, String> {
         self.reset(input);
-        let mut tokens = Vec::with_capacity(self.chars.len());
+        let mut tokens = Vec::with_capacity(input.len());
         while let Some(c) = self.current {
             if c == ' ' {
                 self.advance();

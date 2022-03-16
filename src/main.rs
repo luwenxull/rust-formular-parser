@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut itp = Interpreter::new();
     let mut i = 0;
     while i < 10000 {
-        let input = "1+2+3+4+5+6+7+8+9+10+11+12+13+14".to_string();
+        let input = "1+2+3+4+5+6+7+8+9+10+11+12+13+14";
         // let input = "1+2";
         let position = CellPosition {
             sheet: "Sheet1".to_string(),
