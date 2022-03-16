@@ -1,45 +1,49 @@
 use crate::token::Token;
 use regex::Regex;
-use std::{str::Chars};
 
-pub struct Lexer<'a> {
-    // pos: Cell<usize>,
-    chars: Chars<'a>,
-    current: Option<char>,
+pub struct Lexer {
+    pos: usize,
+    chars: Vec<char>,
     cell_reg: Regex,
-    digits_map: String,
-    letters_map: String,
+    // letters_map: String,
     // digits_reg: Regex,
+    current: Option<char>,
 }
 
-impl<'a> Lexer<'a> {
-    pub fn new() -> Lexer<'a> {
+impl Lexer {
+    pub fn new() -> Lexer {
         Lexer {
-            // pos: Cell::new(0),
-            chars: "".chars(),
-            current: None,
+            pos: 0,
+            chars: vec![],
             cell_reg: Regex::new(r"^\$?[A-Za-z]+\$?\d+$").unwrap(),
-            digits_map: "1234567890".to_string(),
-            letters_map: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$".to_string(),
+            // letters_map: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$".to_string(),
             // digits_reg: Regex::new(r"[0-9]").unwrap(),
+            current: None
         }
     }
 }
 
-impl<'a> Lexer<'a> {
-    // fn current(&self) -> Option<&char> {
-    //     self.chars.get(self.pos.get())
-    // }
-
-    fn advance(&mut self) {
-        // self.pos.set(self.pos.get() + 1);
-        self.current = self.chars.next();
+impl Lexer {
+    fn reset(&mut self, input: String) {
+        self.chars = input.chars().collect();
+        self.pos = 0;
+        self.current = match self.chars.get(self.pos) {
+            Some(c) => Some(*c),
+            None => None,
+        }
     }
 
-    pub fn make_tokens(&mut self, input: &'a str) -> Result<Vec<Token>, String> {
-        self.chars = input.chars();
-        self.advance();
-        let mut tokens = Vec::with_capacity(input.len());
+    fn advance(&mut self) {
+        self.pos += 1;
+        self.current = match self.chars.get(self.pos) {
+            Some(c) => Some(*c),
+            None => None,
+        }
+    }
+
+    pub fn make_tokens(&mut self, input: String) -> Result<Vec<Token>, String> {
+        self.reset(input);
+        let mut tokens = Vec::with_capacity(self.chars.len());
         while let Some(c) = self.current {
             if c == ' ' {
                 self.advance();
@@ -86,9 +90,9 @@ impl<'a> Lexer<'a> {
                     Ok(token) => tokens.push(token),
                     Err(reason) => return Err(reason),
                 }
-            } else if self.digits_map.contains(c) {
+            } else if c.is_digit(10) {
                 tokens.push(self.make_num()?)
-            } else if self.letters_map.contains(c) {
+            } else if c == '$' || c.is_ascii_alphabetic() {
                 tokens.push(self.make_identifier());
             } else {
                 return Err(format!("Unexpected character: {}", c));
@@ -101,7 +105,7 @@ impl<'a> Lexer<'a> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         while let Some(c) = self.current {
-            if self.digits_map.contains(c) {
+            if c.is_digit(10) {
                 num_str.push(c);
                 self.advance();
             } else if c == '.' {
@@ -143,8 +147,8 @@ impl<'a> Lexer<'a> {
     fn make_identifier(&mut self) -> Token {
         let mut ident_str = String::new();
         while let Some(c) = self.current {
-            if self.letters_map.contains(c)
-                || (ident_str != "" && self.digits_map.contains(c))
+            if c == '$' || c.is_ascii_alphabetic()
+                || (ident_str != "" && c.is_digit(10))
             {
                 ident_str.push(c);
                 self.advance();
@@ -166,7 +170,6 @@ impl<'a> Lexer<'a> {
         } else {
             return Token::Var(ident_str);
         }
-        return Token::Var(ident_str);
     }
 
     fn make_gt(&mut self) -> Token {

@@ -46,19 +46,58 @@ impl Parser {
     }
 
     fn compare_expr(&self) -> Result<ASTNode, String> {
-        self.bin_op(&self.compare_op, || self.and_expr())
+        let mut node = self.and_expr()?;
+        while let Some(token) = self.current() {
+            if some(&self.compare_op, |t| t.matches(token)) {
+                self.advance();
+                node = ASTNode::BinaryOp(token.clone(), Box::new(node), Box::new(self.and_expr()?));
+            } else {
+                break;
+            }
+        }
+        return Ok(node);
     }
 
     fn and_expr(&self) -> Result<ASTNode, String> {
-        self.bin_op(&self.and_op, || self.arith_expr())
+        let mut node = self.arith_expr()?;
+        while let Some(token) = self.current() {
+            if some(&self.and_op, |t| t.matches(token)) {
+                self.advance();
+                node =
+                    ASTNode::BinaryOp(token.clone(), Box::new(node), Box::new(self.arith_expr()?));
+            } else {
+                break;
+            }
+        }
+        return Ok(node);
     }
 
     fn arith_expr(&self) -> Result<ASTNode, String> {
-        self.bin_op(&self.arith_op, || self.term_expr())
+        let mut node = self.term_expr()?;
+        while let Some(token) = self.current() {
+            if some(&self.arith_op, |t| t.matches(token)) {
+                self.advance();
+                node =
+                    ASTNode::BinaryOp(token.clone(), Box::new(node), Box::new(self.term_expr()?));
+            } else {
+                break;
+            }
+        }
+        return Ok(node);
     }
 
     fn term_expr(&self) -> Result<ASTNode, String> {
-        self.bin_op(&self.term_op, || self.factor_expr())
+        let mut node = self.factor_expr()?;
+        while let Some(token) = self.current() {
+            if some(&self.term_op, |t| t.matches(token)) {
+                self.advance();
+                node =
+                    ASTNode::BinaryOp(token.clone(), Box::new(node), Box::new(self.factor_expr()?));
+            } else {
+                break;
+            }
+        }
+        return Ok(node);
     }
 
     fn factor_expr(&self) -> Result<ASTNode, String> {
@@ -208,23 +247,6 @@ impl Parser {
                 None => break Err("Unexpected EOF".to_string()),
             }
         }
-    }
-
-    fn bin_op(
-        &self,
-        matches: &Vec<Token>,
-        down: impl Fn() -> Result<ASTNode, String>,
-    ) -> Result<ASTNode, String> {
-        let mut node = down()?;
-        while let Some(token) = self.current() {
-            if some(&matches, |t| t.matches(token)) {
-                self.advance();
-                node = ASTNode::BinaryOp(token.clone(), Box::new(node), Box::new(down()?));
-            } else {
-                break;
-            }
-        }
-        return Ok(node);
     }
 
     /// 创建行或列范围
